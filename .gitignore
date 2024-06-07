@@ -4,3 +4,5 @@ dist
 .eslintcache
 .nyc_output
 types
+
+.idea
