@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+  </head>
+  <style >
+    body {
+    /*//TODO 禁用鼠标操作提高性能，代验证*/
+    pointer-events: none;
+    /*//开启平滑滚动*/
+    scroll-behavior: smooth;
+    }
+    [focusable],
+    [focusdisable] {
+      display: inline-block;
+      height: 100px;
+      width: 100px;
+      background: darkseagreen;
+      margin-bottom: 20px;
+      margin-right: 20px;
+      font-size: 50px;
+      border: 10px solid transparent;
+    }
+    .focus {
+      border: 10px solid red;
+    }
+  </style>
+  <body>
+    <div class="focus-wrap">
+
+    </div>
+    <script src="../node_modules/es5-shim/es5-shim.js"></script>
+    <script src="../node_modules/es5-shim/es5-sham.js"></script>
+
+    <script src="../dist/index.aio.js"></script>
+    <script src="./demo-main.js"></script>
+    <script>
+      //console.log(window['focus-controller-js'].name);
+    </script>
+  </body>
+</html>
