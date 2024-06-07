@@ -1,5 +1,6 @@
 import BScroll from '@better-scroll/core';
 import ScrollBar from '@better-scroll/scroll-bar';
+import { BScrollConstructor } from "@better-scroll/core/dist/types/BScroll";
 import MouseWheel from '@better-scroll/mouse-wheel';
 
 export const name = 'focus-controller-js';
@@ -28,17 +29,18 @@ export type FocusControllerProps={
  * 电视端焦点控制
  */
  class FocusControllerJs {
-  scrollEl:any
+  scrollElId:string
   KEYS:Record<string, number[]>
-  scrollCaches:Record<string, any>
+  scrollCaches:Record<string, BScrollConstructor>
   limitingEl:any
-  keyUpEvent?:(event:any)=>void
-  scrollFn?: (event: any, focusedEl: any)=>void
+  scrollFn?: (event: any, focusedEl: KeyboardEvent)=>void
   scrollTimeout?:NodeJS.Timeout
+  longTimeout?:NodeJS.Timeout
+  longInterval?:NodeJS.Timeout
   constructor(option:FocusControllerProps = {}) {
     this.scrollFn = option?.scrollFn;
 
-    this.scrollEl = null;
+    this.scrollElId = '.scroll-wrap';
 
     this.KEYS = {
       KEY_LEFT: [37, 21],
@@ -51,41 +53,13 @@ export type FocusControllerProps={
     // 缓存better-scroll
     this.scrollCaches = {};
 
-    this.keyUpEvent = e => {
-      let direction = '';
-      for (let key in this.KEYS) {
-        const item = this.KEYS[key];
-        if (item.includes(e.keyCode)) {
-          if (key === 'KEY_LEFT') direction = 'left';
-          if (key === 'KEY_UP') direction = 'up';
-          if (key === 'KEY_RIGHT') direction = 'right';
-          if (key === 'KEY_DOWN') direction = 'down';
-        }
-      }
+    this.initScroll()
 
-      if (this.KEYS['KEY_ENTER'].includes(e.keyCode)) {
-        const focusedEl:any = document.querySelectorAll('[focused]');
-        if (focusedEl.length) {
 
-          focusedEl[0]?.click();
-        }
-      }
-      e.preventDefault();
-
-      if (!direction) return;
-
-      let el = this.getNextFocusEl(direction);
-      if (el) {
-        this.setFocus(el);
-        this.doScroll('scrollTop', el, );
-      }
-
-      // 禁止方向键触发滚动
-      e.preventDefault();
-    };
-
-    document.removeEventListener('keyup', this.keyUpEvent, false);
-    document.addEventListener('keyup', this.keyUpEvent);
+    document.removeEventListener('keyup',(e)=> this.onShortKeyUp(e), false);
+    document.removeEventListener('keydown',(e)=> this.onLongKeyDown(e), false);
+    document.addEventListener('keyup', (e)=> this.onShortKeyUp(e));
+    document.addEventListener('keydown', (e)=> this.onLongKeyDown(e));
 
     Object.defineProperty(this, 'limitingEl', {
       get: function() {
@@ -123,6 +97,60 @@ export type FocusControllerProps={
     this.limitingEl = '';
   }
 
+  // 长按
+  onLongKeyDown(e:KeyboardEvent){
+
+    if(this.longTimeout)return
+    this.longTimeout = setTimeout(() => {
+      console.log("长按",e);
+      // 持续触发按钮
+      this.longInterval = setInterval(()=>{
+        this.keyUpEvent(e)
+      },150)
+    }, 500);
+  }
+
+  // 短按
+  onShortKeyUp(e:KeyboardEvent){
+    clearTimeout(this.longTimeout)
+    this.longTimeout = undefined
+    clearInterval(this.longInterval)
+    this.longInterval = undefined
+    this.keyUpEvent(e)
+  }
+  keyUpEvent( e:KeyboardEvent) {
+    let direction = '';
+    for (const key in this.KEYS) {
+      const item = this.KEYS[key];
+      if (item.includes(e.keyCode)) {
+        if (key === 'KEY_LEFT') direction = 'left';
+        if (key === 'KEY_UP') direction = 'up';
+        if (key === 'KEY_RIGHT') direction = 'right';
+        if (key === 'KEY_DOWN') direction = 'down';
+      }
+    }
+
+    if (this.KEYS['KEY_ENTER'].includes(e.keyCode)) {
+      const focusedEl:any = document.querySelectorAll('[focused]');
+      if (focusedEl.length) {
+
+        focusedEl[0]?.click();
+      }
+    }
+    e.preventDefault();
+
+    if (!direction) return;
+
+    const nextEl = this.getNextFocusEl(direction);
+    if (nextEl) {
+      this.setFocus(nextEl);
+        this.doScroll('scrollTop', nextEl, );
+    }
+
+    // 禁止方向键触发滚动
+    e.preventDefault();
+  }
+
   requestFocus(e:any) {
     return this.setFocus(e.$el || e);
   }
@@ -157,8 +185,8 @@ export type FocusControllerProps={
    */
   getNextFocusEl(direction:string) {
     console.time('getNextFocusEl');
-    let focusableEl = document.querySelectorAll('[focusable]');
-    let focusedEl = document.querySelectorAll('[focused]');
+    const focusableEl = document.querySelectorAll('[focusable]');
+    const focusedEl = document.querySelectorAll('[focused]');
 
     if (!focusableEl.length) return;
 
@@ -181,7 +209,7 @@ export type FocusControllerProps={
     const focusedRect = el.getBoundingClientRect();
     const elCenter = [focusedRect.left + focusedRect.width / 2, focusedRect.top + focusedRect.height / 2]; //中心点[x,y]
 
-    let distances:any[] = [];
+    const distances:any[] = [];
 
     // let
     focusableEl.forEach((_el, index) => {
@@ -218,25 +246,31 @@ export type FocusControllerProps={
     return el;
   }
 
+  scrollTo(x:number,y:number)  {
+    this.scrollCaches[this.scrollElId].scrollTo(x,y)
+  }
+
+
   /**
    * 执行滚动
    * @param scrollType- 可选: scrollTop | scrollLeft
    * @param focusedEl
    */
-  doScroll(scrollType:string, focusedEl:any) {
+  doScroll(scrollType:'scrollTop' | 'scrollLeft', focusedEl:any) {
+    // 上下滚动
     if (scrollType === 'scrollTop') {
       if (this.scrollFn) {
         this.scrollFn(focusedEl.offsetTop, focusedEl);
       } else {
-        let cacheId = this.scrollEl && this.scrollEl.getAttribute('tv-scroll');
-        if (cacheId) {
-          this.scrollCaches[cacheId].stop();
+        const cacheId = this.scrollElId
+        if ( this.scrollCaches[cacheId]) {
+          // this.scrollCaches[cacheId].stop();
 
           // 节流期间跳过动画
           if (!this.scrollTimeout) {
-            this.scrollCaches[cacheId].scrollToElement(focusedEl, 200, true, true);
-          } else {
-            this.scrollCaches[cacheId].scrollToElement(focusedEl, 0, true, true);
+
+            this.scrollCaches[cacheId].scrollToElement(focusedEl, 300, true, true);
+            // this.scrollCaches[cacheId].scrollToElement(focusedEl, 150, true, -focusedEl.offsetHeight);
           }
 
           // 节流
@@ -244,10 +278,12 @@ export type FocusControllerProps={
           this.scrollTimeout = setTimeout(() => {
             clearTimeout(this.scrollTimeout);
             this.scrollTimeout = undefined;
-          }, 200);
+          }, 50);
         }
       }
     }
+
+    // 左右滚动
     if (scrollType === 'scrollLeft') {
       // scrollEl.scrollTo({ left: num, behavior: 'smooth' });
     }
@@ -267,42 +303,36 @@ export type FocusControllerProps={
   }
 
   // 设置滚动
-  setScrollEl(node:Element) {
-    this.scrollEl = node;
+  initScroll() {
     // 先全部禁用
-    for (let key in this.scrollCaches) {
+    for (const key in this.scrollCaches) {
       this.scrollCaches[key].disable();
     }
 
-    let cacheId = node && node.getAttribute('tv-scroll');
-    if (cacheId) {
+    const cacheId =this.scrollElId
+    if (this.scrollCaches[cacheId]) {
       this.scrollCaches[cacheId].refresh();
       this.scrollCaches[cacheId].enable();
     } else {
-      cacheId = 'tv-scroll-' + new Date().getTime();
-      // 设置唯一值
-      node.setAttribute('tv-scroll', cacheId);
-
-
-      // @ts-ignore
-      this.scrollCaches[cacheId] = new BScroll(node, {
-        // ...... 详见配置项
-        // scrollY: true,
-        freeScroll: true,
-        probeType: 3,
-        // click: true,
+      this.scrollCaches[cacheId] = new BScroll(this.scrollElId,
+        {
+        // ...... 详见配置项 https://better-scroll.github.io/docs/zh-CN/guide/base-scroll-options.html#disabletouch
+        //   disableMouse: false,
+        //   disableTouch: false,
+        // freeScroll: true,
+        // probeType: 3,
         // preventDefault: false,
-        mouseWheel: true,
-        scrollbar: {
-          fade: true,
-        },
-      });
+        // mouseWheel: true,
+        // scrollbar: {
+        //   fade: true,
+        // },
+          bounce:false //边缘回弹动画
+      }
+      );
     }
   }
 
-  // @ts-ignore
   getParentTag(el:any, parents:any[] = []) :Element[]{
-    // @ts-ignore
     return el instanceof HTMLElement
       ? 'BODY' !== el.parentElement?.nodeName
         ? (parents.push(el.parentElement), this.getParentTag(el.parentElement, parents))
@@ -318,8 +348,7 @@ export type FocusControllerProps={
   }
 
   resetScrollEl() {
-    this.scrollEl = null;
-    for (let key in this.scrollCaches) {
+    for (const key in this.scrollCaches) {
       this.scrollCaches[key].destroy();
     }
     this.scrollCaches = {};
