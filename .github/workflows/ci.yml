@@ -23,10 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js 18.x
+      - name: Use Node.js 16
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '16'
           cache: 'npm'
       - run: npm ci
       - run: npm run lint
