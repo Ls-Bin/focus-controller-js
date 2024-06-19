@@ -6,15 +6,9 @@
 [![NPM downloads](http://img.shields.io/npm/dm/focus-controller-js.svg?style=flat-square)](http://www.npmtrends.com/focus-controller-js)
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/Ls-Bin/focus-controller-js.svg)](http://isitmaintained.com/project/Ls-Bin/focus-controller-js "Percentage of issues still open")
 
-最好用的 `JS|TS` 第三方库脚手架
+适配tv电视焦点控制，可方向键控制焦点
 
 ## :star: 特性
-
-- 支持ES6+或TypeScript编写源码，编译生成生产代码
-- 多环境支持（支持浏览器原生，支持AMD，CMD，支持Webpack，Rollup，fis等，支持Node）
-- 集成[jsmini](https://github.com/jsmini)
-
-> 注意: 如果不同时使用 `export` 与 `export default` 可打开 `legacy模式`，`legacy模式` 下的模块系统可以兼容 `ie6-8`，见rollup配置文件
 
 ## :pill: 兼容性
 单元测试保证支持如下环境：
@@ -46,11 +40,6 @@
 $ npm install --save focus-controller-js
 ```
 
-如果你是node环境
-
-```js
-const focus-controller-js = require('focus-controller-js');
-```
 
 如果你是webpack等环境
 
@@ -64,8 +53,6 @@ import focus-controller-js from 'focus-controller-js';
 <script src="node_modules/focus-controller-js/dist/index.aio.js"></script>
 ```
 
-## :bookmark_tabs: 文档
-[API](./doc/api.md)
 
 ## :kissing_heart: 贡献者指南
 首次运行需要先安装依赖
@@ -106,6 +93,3 @@ $ npm publish
 
 ## :gear: 更新日志
 [CHANGELOG.md](./CHANGELOG.md)
-
-## :airplane: 计划列表
-[TODO.md](./TODO.md)
