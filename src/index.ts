@@ -8,18 +8,7 @@ export const name = 'focus-controller-js';
 BScroll.use(MouseWheel);
 BScroll.use(ScrollBar);
 
-// let bs = new BScroll('.wrapper', {
-//   // ...... 详见配置项
-//   // scrollY: true,
-//   freeScroll: true,
-//   probeType: 3,
-//   // click: true,
-//   // preventDefault: false,
-//   scrollbar: {
-//     // fade: false,
-//     minSize: 30,
-//   },
-// });
+
 export type FocusControllerProps={
   scrollFn?:(event:any)=>void
 }
@@ -162,7 +151,6 @@ export type FocusControllerProps={
   setFocus(el:Element) {
     this.clearFocus();
 
-    el.classList.add('focus');
     el.setAttribute('focused', '');
     el.dispatchEvent(new CustomEvent('onFocus', { detail: { el: el } }));
   }
@@ -174,7 +162,6 @@ export type FocusControllerProps={
   clearFocus() {
     document.querySelectorAll('[focused]').forEach(function(b) {
       b.removeAttribute('focused');
-      b.classList.remove('focus');
       b.dispatchEvent(new CustomEvent('onBlur', { detail: { el: b } }));
     });
   }
@@ -268,9 +255,11 @@ export type FocusControllerProps={
 
           // 节流期间跳过动画
           if (!this.scrollTimeout) {
+            console.log('执行滚动动画',cacheId, this.scrollCaches[cacheId])
+            if(this.scrollCaches[cacheId]?.scrollToElement){
+              this.scrollCaches[cacheId]?.scrollToElement(focusedEl, 300, true, true);
+            }
 
-            this.scrollCaches[cacheId].scrollToElement(focusedEl, 300, true, true);
-            // this.scrollCaches[cacheId].scrollToElement(focusedEl, 150, true, -focusedEl.offsetHeight);
           }
 
           // 节流
