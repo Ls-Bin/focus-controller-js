@@ -2,6 +2,7 @@ import BScroll from '@better-scroll/core';
 import ScrollBar from '@better-scroll/scroll-bar';
 import { BScrollConstructor } from '@better-scroll/core/dist/types/BScroll';
 import MouseWheel from '@better-scroll/mouse-wheel';
+import { Options } from "@better-scroll/core/src/Options";
 
 export const name = 'focus-controller-js';
 
@@ -10,6 +11,8 @@ BScroll.use(ScrollBar);
 
 export type FocusControllerProps = {
   scrollFn?: (event: any) => void;
+
+  betterScrollOptions?:Record<string, Options>
 };
 
 type Direction = 'left' | 'right' | 'up' | 'down';
@@ -33,8 +36,12 @@ class FocusControllerJs {
   longTimeout?: NodeJS.Timeout;
   longInterval?: NodeJS.Timeout;
   rules: ('rowFirst' | 'columnFirst')[] = [];
+
+   // betterScroll选项 key为 focus-scroll-key
+  betterScrollOptions:Record<string, Options>={}
   constructor(option: FocusControllerProps = {}) {
     this.scrollFn = option?.scrollFn;
+    this.betterScrollOptions = option?.betterScrollOptions||{};
 
     this.scrollElId = '.scroll-wrap';
 
@@ -354,19 +361,23 @@ class FocusControllerJs {
    * @param focusedEl
    */
   doScroll(scrollType: 'scrollTop' | 'scrollLeft', focusedEl: any) {
-    // 上下滚动
-    if (scrollType === 'scrollTop') {
+
+    const parentElList = this.getParentTag(focusedEl)
+   const scrollEl =   parentElList.find(el=>el.getAttribute('focus-scroll-key'))
+
+    if(scrollEl){
       if (this.scrollFn) {
         this.scrollFn(focusedEl.offsetTop, focusedEl);
       } else {
-        const cacheId = this.scrollElId;
+        const cacheId = scrollEl.getAttribute('focus-scroll-key')
         if (this.scrollCaches[cacheId]) {
           // this.scrollCaches[cacheId].stop();
 
           // 节流期间跳过动画
           if (!this.scrollTimeout) {
-            console.log('执行滚动动画', cacheId, this.scrollCaches[cacheId]);
+
             if (this.scrollCaches[cacheId]?.scrollToElement) {
+              console.log('执行滚动动画', cacheId, this.scrollCaches[cacheId]);
               this.scrollCaches[cacheId]?.scrollToElement(
                 focusedEl,
                 300,
@@ -386,10 +397,6 @@ class FocusControllerJs {
       }
     }
 
-    // 左右滚动
-    if (scrollType === 'scrollLeft') {
-      // scrollEl.scrollTo({ left: num, behavior: 'smooth' });
-    }
   }
 
   /**
@@ -412,25 +419,39 @@ class FocusControllerJs {
       this.scrollCaches[key].disable();
     }
 
-    const cacheId = this.scrollElId;
-    if (this.scrollCaches[cacheId]) {
-      this.scrollCaches[cacheId].refresh();
-      this.scrollCaches[cacheId].enable();
-    } else {
-      this.scrollCaches[cacheId] = new BScroll(this.scrollElId, {
-        // ...... 详见配置项 https://better-scroll.github.io/docs/zh-CN/guide/base-scroll-options.html#disabletouch
-        //   disableMouse: false,
-        //   disableTouch: false,
-        // freeScroll: true,
-        // probeType: 3,
-        // preventDefault: false,
-        // mouseWheel: true,
-        // scrollbar: {
-        //   fade: true,
-        // },
-        bounce: false, //边缘回弹动画
-      });
-    }
+    const scrollElList = document.querySelectorAll('[focus-scroll-key]')
+    let scrollIds =[this.scrollElId]
+
+    scrollElList.forEach(el=>{
+      scrollIds.push(el.getAttribute('focus-scroll-key'));
+    })
+    scrollIds = [...new Set(scrollIds)]
+
+    scrollIds.forEach(cacheId=>{
+      if (this.scrollCaches[cacheId]) {
+        this.scrollCaches[cacheId].refresh();
+        this.scrollCaches[cacheId].enable();
+      } else {
+        this.scrollCaches[cacheId] = new BScroll(cacheId, {
+          // ...... 详见配置项 https://better-scroll.github.io/docs/zh-CN/guide/base-scroll-options.html#disabletouch
+          //   disableMouse: false,
+          //   disableTouch: false,
+          // scrollX: true,
+          // freeScroll: true,
+          // probeType: 3,
+          // preventDefault: false,
+          // mouseWheel: true,
+          // scrollbar: {
+          //   fade: true,
+          // },
+          // bounce: false, //边缘回弹动画
+
+          ...(this.betterScrollOptions[cacheId]||{})
+        });
+      }
+    })
+
+
   }
 
   getParentTag(el: any, parents: any[] = []): Element[] {
