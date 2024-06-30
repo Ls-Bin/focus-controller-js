@@ -28,6 +28,7 @@ type DefaultNearData = {
  */
 class FocusControllerJs {
   scrollElId: string;
+  rangeEl?: HTMLElement;
   KEYS: Record<string, number[]>;
   scrollCaches: Record<string, BScrollConstructor>;
   limitingEl: any;
@@ -167,6 +168,18 @@ class FocusControllerJs {
 
   requestFocus(e: any) {
     return this.setFocus(e.$el || e);
+  }
+
+
+  setRange(el:HTMLElement|string){
+    if(typeof el === 'string'){
+      this.rangeEl = document?.querySelector(el)||undefined;
+    }else{
+      this.rangeEl = el
+    }
+  }
+  clearRange(){
+    this.rangeEl=undefined;
   }
 
   /**
@@ -309,9 +322,15 @@ class FocusControllerJs {
    */
   getNextFocusEl(direction: Direction) {
     console.time('getNextFocusEl');
-    const focusableElList = document.querySelectorAll('[focusable]');
-    const focusedEls = document.querySelectorAll('[focused]');
-
+    let focusableElList:any[] = [];
+    let focusedEls:any[] = [];
+      if(this.rangeEl){
+        focusableElList=  this.rangeEl.querySelectorAll('[focusable]')
+        focusedEls= this.rangeEl.querySelectorAll('[focused]')
+      }else {
+         focusableElList = document.querySelectorAll('[focusable]');
+         focusedEls = document.querySelectorAll('[focused]');
+      }
     if (!focusableElList.length) return;
 
     if (
