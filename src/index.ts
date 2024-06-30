@@ -177,6 +177,7 @@ class FocusControllerJs {
     }else{
       this.rangeEl = el
     }
+    console.log('setRange=',el,this.rangeEl);
   }
   clearRange(){
     this.rangeEl=undefined;
@@ -186,11 +187,19 @@ class FocusControllerJs {
    * 设置焦点
    * @param el
    */
-  setFocus(el: Element) {
+  setFocus(el?: Element) {
+    let newEl = el
     this.clearFocus();
 
-    el.setAttribute('focused', '');
-    el.dispatchEvent(new CustomEvent('onFocus', { detail: { el: el } }));
+    if(typeof el === 'string'){
+      newEl = document?.querySelector(el)||undefined;
+    }
+    if(newEl){
+      newEl.setAttribute('focused', '');
+      newEl.dispatchEvent(new CustomEvent('onFocus', { detail: { el: el } }));
+    }
+
+
   }
 
   /**
