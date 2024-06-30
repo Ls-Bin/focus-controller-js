@@ -2,7 +2,7 @@ import BScroll from '@better-scroll/core';
 import ScrollBar from '@better-scroll/scroll-bar';
 import { BScrollConstructor } from '@better-scroll/core/dist/types/BScroll';
 import MouseWheel from '@better-scroll/mouse-wheel';
-import { Options } from "@better-scroll/core/src/Options";
+import { Options } from "@better-scroll/core/dist/types/Options";
 
 export const name = 'focus-controller-js';
 
@@ -156,7 +156,7 @@ class FocusControllerJs {
 
     if (!direction) return;
 
-    const nextEl = this.getNextFocusEl(direction);
+    const nextEl = this.getNextFocusEl(<"left" | "right" | "up" | "down">direction);
     if (nextEl) {
       this.setFocus(nextEl);
       this.doScroll('scrollTop', nextEl);
@@ -214,16 +214,16 @@ class FocusControllerJs {
   }
 
   // 优先行选中
-  isRowFirstRule(focusedRect, elRect) {
+  isRowFirstRule(focusedRect:DOMRect, elRect:DOMRect) {
     return focusedRect.top === elRect.top;
   }
   // 优先列选中
-  isColumnFirstRule(focusedRect, elRect) {
+  isColumnFirstRule(focusedRect:DOMRect, elRect:DOMRect) {
     return focusedRect.left === elRect.left;
   }
 
   // 获取规则匹配el
-  getRulesEl(nearData: DefaultNearData, focusedRect) {
+  getRulesEl(nearData: DefaultNearData, focusedRect:DOMRect) {
     let res = null;
     const ruleMap: Record<string, any[]> = {};
     this.rules.forEach((rule) => {
@@ -247,14 +247,14 @@ class FocusControllerJs {
     this.rules.some((rule) => {
       const arr = ruleMap[rule];
       if (arr.length) {
-        const distances: Pick<DefaultNearData, 'distances'> = [];
-        const elList: Pick<DefaultNearData, 'elList'> = [];
-        const ractList: Pick<DefaultNearData, 'ractList'> = [];
+        const distances: any[] = [];
+        const elList: any[] = [];
+        const rectList: any[] = [];
         arr.forEach((item, index) => {
           if (item) {
             distances.push(nearData.distances[index]);
             elList.push(nearData.elList[index]);
-            ractList.push(nearData.rectList[index]);
+            rectList.push(nearData.rectList[index]);
           }
         });
         const min = Math.min(...distances.filter((d) => d));
@@ -331,8 +331,10 @@ class FocusControllerJs {
    */
   getNextFocusEl(direction: Direction) {
     console.time('getNextFocusEl');
-    let focusableElList:any[] = [];
-    let focusedEls:any[] = [];
+    // @ts-ignore
+    let focusableElList:NodeListOf<Element> = [];
+    // @ts-ignore
+    let focusedEls:NodeListOf<Element> = [];
       if(this.rangeEl){
         focusableElList=  this.rangeEl.querySelectorAll('[focusable]')
         focusedEls= this.rangeEl.querySelectorAll('[focused]')
@@ -397,14 +399,14 @@ class FocusControllerJs {
       if (this.scrollFn) {
         this.scrollFn(focusedEl.offsetTop, focusedEl);
       } else {
-        const cacheId = scrollEl.getAttribute('focus-scroll-key')
+        const cacheId:string = scrollEl.getAttribute('focus-scroll-key')||''
         if (this.scrollCaches[cacheId]) {
           // this.scrollCaches[cacheId].stop();
 
           // 节流期间跳过动画
           if (!this.scrollTimeout) {
-
-            if (this.scrollCaches[cacheId]?.scrollToElement) {
+            //@ts-ignore
+            if (cacheId&&this.scrollCaches[cacheId]?.scrollToElement) {
               console.log('执行滚动动画', cacheId, this.scrollCaches[cacheId]);
               this.scrollCaches[cacheId]?.scrollToElement(
                 focusedEl,
@@ -451,7 +453,7 @@ class FocusControllerJs {
     let scrollIds =[this.scrollElId]
 
     scrollElList.forEach(el=>{
-      scrollIds.push(el.getAttribute('focus-scroll-key'));
+      scrollIds.push(el.getAttribute('focus-scroll-key')||'');
     })
     scrollIds = [...new Set(scrollIds)]
 

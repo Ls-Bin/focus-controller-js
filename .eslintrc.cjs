@@ -44,6 +44,7 @@ module.exports = {
     'import/namespace': 'off',
     'import/default': 'off',
     'import/no-named-as-default-member': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-explicit-any': 'off', //隐藏any报错
   },
 };
