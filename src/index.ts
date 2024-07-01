@@ -13,6 +13,9 @@ export type FocusControllerProps = {
   scrollFn?: (event: any) => void;
 
   betterScrollOptions?:Record<string, Options>
+  // x轴上下偏移
+  ruleOffsetX?:[number, number];
+  ruleOffsetY?:[number, number];
 };
 
 type Direction = 'left' | 'right' | 'up' | 'down';
@@ -27,7 +30,6 @@ type DefaultNearData = {
  * 电视端焦点控制
  */
 class FocusControllerJs {
-  scrollElId: string;
   rangeEl?: HTMLElement;
   KEYS: Record<string, number[]>;
   scrollCaches: Record<string, BScrollConstructor>;
@@ -37,14 +39,16 @@ class FocusControllerJs {
   longTimeout?: NodeJS.Timeout;
   longInterval?: NodeJS.Timeout;
   rules: ('rowFirst' | 'columnFirst')[] = [];
+  ruleOffsetX?: [number,number] = [0,0];
+  ruleOffsetY?: [number,number] = [0,0];
 
    // betterScroll选项 key为 focus-scroll-key
   betterScrollOptions:Record<string, Options>={}
   constructor(option: FocusControllerProps = {}) {
     this.scrollFn = option?.scrollFn;
     this.betterScrollOptions = option?.betterScrollOptions||{};
-
-    this.scrollElId = '.scroll-wrap';
+    this.ruleOffsetX = option?.ruleOffsetX||[0,0];
+    this.ruleOffsetY = option?.ruleOffsetY||[0,0];
 
     this.KEYS = {
       KEY_LEFT: [37, 21],
@@ -159,7 +163,7 @@ class FocusControllerJs {
     const nextEl = this.getNextFocusEl(<"left" | "right" | "up" | "down">direction);
     if (nextEl) {
       this.setFocus(nextEl);
-      this.doScroll('scrollTop', nextEl);
+      this.doScroll( nextEl);
     }
 
     // 禁止方向键触发滚动
@@ -215,11 +219,23 @@ class FocusControllerJs {
 
   // 优先行选中
   isRowFirstRule(focusedRect:DOMRect, elRect:DOMRect) {
-    return focusedRect.top === elRect.top;
+    // console.log('isRowFirstRule=',focusedRect, elRect,focusedRect.top <= elRect.top+(this.ruleOffsetX?.[0]||0),
+    //   ( focusedRect.top+focusedRect.height) >= (elRect.top+elRect.height)+(this.ruleOffsetX?.[1]||0)
+    //   )
+    if(focusedRect.top <= elRect.top+(this.ruleOffsetX?.[0]||0)&&
+      (focusedRect.top+focusedRect.height) >= (elRect.top+elRect.height)+(this.ruleOffsetX?.[1]||0)
+      ){
+      return true
+    }
   }
   // 优先列选中
   isColumnFirstRule(focusedRect:DOMRect, elRect:DOMRect) {
-    return focusedRect.left === elRect.left;
+
+    if(focusedRect.left <= elRect.left+(this.ruleOffsetY?.[0]||0)&&
+      (focusedRect.left+focusedRect.width) >= (elRect.left+elRect.width)+(this.ruleOffsetY?.[1]||0)
+    ){
+      return true
+    }
   }
 
   // 获取规则匹配el
@@ -381,16 +397,12 @@ class FocusControllerJs {
     return focusedEl;
   }
 
-  scrollTo(x: number, y: number) {
-    this.scrollCaches[this.scrollElId].scrollTo(x, y);
-  }
 
   /**
    * 执行滚动
-   * @param scrollType- 可选: scrollTop | scrollLeft
    * @param focusedEl
    */
-  doScroll(scrollType: 'scrollTop' | 'scrollLeft', focusedEl: any) {
+  doScroll( focusedEl: any) {
 
     const parentElList = this.getParentTag(focusedEl)
    const scrollEl =   parentElList.find(el=>el.getAttribute('focus-scroll-key'))
@@ -443,14 +455,16 @@ class FocusControllerJs {
   }
 
   // 设置滚动
-  initScroll() {
+  initScroll(betterScrollOptions?:Record<string, Options>) {
+    this.betterScrollOptions = betterScrollOptions||this.betterScrollOptions||{};
     // 先全部禁用
     for (const key in this.scrollCaches) {
-      this.scrollCaches[key].disable();
+
+        this.scrollCaches[key].disable();
     }
 
     const scrollElList = document.querySelectorAll('[focus-scroll-key]')
-    let scrollIds =[this.scrollElId]
+    let scrollIds:any[] =[]
 
     scrollElList.forEach(el=>{
       scrollIds.push(el.getAttribute('focus-scroll-key')||'');
@@ -458,10 +472,6 @@ class FocusControllerJs {
     scrollIds = [...new Set(scrollIds)]
 
     scrollIds.forEach(cacheId=>{
-      if (this.scrollCaches[cacheId]) {
-        this.scrollCaches[cacheId].refresh();
-        this.scrollCaches[cacheId].enable();
-      } else {
         this.scrollCaches[cacheId] = new BScroll(cacheId, {
           // ...... 详见配置项 https://better-scroll.github.io/docs/zh-CN/guide/base-scroll-options.html#disabletouch
           //   disableMouse: false,
@@ -478,12 +488,18 @@ class FocusControllerJs {
 
           ...(this.betterScrollOptions[cacheId]||{})
         });
-      }
+
     })
 
 
   }
 
+  // 重新计算滚动高度和宽度
+  scrollReFresh(){
+    for (const key in this.scrollCaches) {
+      this.scrollCaches[key].refresh();
+    }
+  }
   getParentTag(el: any, parents: any[] = []): Element[] {
     return el instanceof HTMLElement
       ? 'BODY' !== el.parentElement?.nodeName
