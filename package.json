@@ -1,6 +1,6 @@
 {
   "name": "focus-controller-js",
-  "version": "0.1.2",
+  "version": "0.1.2-beta.1",
   "description": "",
   "sideEffects": false,
   "main": "dist/index.js",
@@ -17,7 +17,6 @@
   },
   "types": "./types/index.d.ts",
   "scripts": {
-    "preinstall": "npx only-allow npm",
     "clean": "rimraf ./dist ./types",
     "start": "http-server -p 3800 -c-1",
     "test": "nyc mocha",
