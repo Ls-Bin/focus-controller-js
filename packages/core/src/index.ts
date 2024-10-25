@@ -191,7 +191,7 @@ class FocusControllerJs {
    * 设置焦点
    * @param el
    */
-  setFocus(el?: Element) {
+  setFocus(el?: Element|string) {
     let newEl = el
     this.clearFocus();
 

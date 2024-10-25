@@ -3,21 +3,10 @@
   "version": "0.1.3",
   "description": "",
   "sideEffects": false,
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
   "types": "./types/index.d.ts",
   "packageManager": "npm@8.19.4",
-  "exports": {
-    "node": {
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.js"
-    },
-    "default": {
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.js"
-    }
-  },
-
   "scripts": {
     "clean": "rimraf ./dist ./types",
     "start": "http-server -p 3800 -c-1",
