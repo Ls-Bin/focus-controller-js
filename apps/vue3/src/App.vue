@@ -23,22 +23,21 @@
   </div>
 </template>
 <script lang="ts" setup>
-import FocusControllerJs from "focus-controller-js";
-import { nextTick } from "vue";
+import FocusControllerJs from 'focus-controller-js';
+import { nextTick } from 'vue';
 function onKeyDown(event: KeyboardEvent) {
   // stop page scroll
   event.preventDefault();
 }
-document.removeEventListener("keydown", onKeyDown);
-document.addEventListener("keydown", onKeyDown);
+document.removeEventListener('keydown', onKeyDown);
+document.addEventListener('keydown', onKeyDown);
 
 const focusController = new FocusControllerJs();
 
-nextTick(()=>{
-  const el = document.querySelector('.focus-item')||undefined
-  focusController.setFocus(el)
-})
-
+nextTick(() => {
+  const el = document.querySelector('.focus-item') || undefined;
+  focusController.setFocus(el);
+});
 </script>
 
 <style scoped>

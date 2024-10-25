@@ -22,9 +22,6 @@ $ npm install --save focus-controller-js
 
 ```js
 import FocusControllerJs from "focus-controller-js";
-
-const focusController = new FocusControllerJs();
-
 ```
 
 如果你是浏览器环境
@@ -34,6 +31,37 @@ const focusController = new FocusControllerJs();
 ```
 
 ## Usage
+### add attribute `focusable="focusable"`
+
+### init
+```js
+import FocusControllerJs from "focus-controller-js";
+
+const focusController = new FocusControllerJs();
+```
+
+### use better-scroll
+1. set attribute `focus-scroll-key`
+
+```html
+<div id="record-table" focus-scroll-key="#record-table">
+  ...
+</div>
+```
+2. init scroll
+```js
+
+  window.focusController.initScroll({
+    "#record-table": {
+      scrollY: true,
+      scrollbar: {
+        fade: false,
+      },
+    },
+  });
+
+```
+view more options: https://better-scroll.github.io/docs/en-US/
 ## 
 
 ## examples

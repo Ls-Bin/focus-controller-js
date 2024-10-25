@@ -13,7 +13,7 @@
     "vue": "^3.5.12"
   },
   "devDependencies": {
-    "focus-controller-js": "workspace:*",
+    "focus-controller-js": "*",
     "@biomejs/biome": "^1.9.3",
     "@rsbuild/core": "^1.0.16",
     "@rsbuild/plugin-vue": "^1.0.2",

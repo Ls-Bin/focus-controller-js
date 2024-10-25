@@ -13,6 +13,7 @@
   },
   "javascript": {
     "formatter": {
+      "lineWidth": 200,
       "quoteStyle": "single"
     }
   },
@@ -24,6 +25,7 @@
   "linter": {
     "enabled": true,
     "rules": {
+
       "recommended": true
     }
   }
