@@ -1,0 +1,23 @@
+body {
+  margin: 0;
+  color: #fff;
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  background-image: linear-gradient(to bottom, #020917, #101725);
+}
+
+
+.focus-item{
+  background-color:grey;
+  font-size: 30px;
+  display: inline-flex;
+  width: 100px;
+  height: 100px;
+  margin:10px;
+  align-items: center;
+  justify-content: center;
+  border: 5px solid transparent;
+}
+
+[focused]{
+  border-color: darkseagreen;
+}

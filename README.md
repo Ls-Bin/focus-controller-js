@@ -65,27 +65,7 @@ view more options: https://better-scroll.github.io/docs/en-US/
 ## 
 
 ## examples
- - [vue3](./apps/vue3/README.md)
+ - [Vue3](./apps/vue3/README.md)
+ - [React](./apps/react/README.md)
 
-
-## :kissing_heart: 贡献者指南
-首次运行需要先安装依赖
-
-```bash
-$ npm install
-```
-
-一键打包生成生产代码
-
-```bash
-$ npm run build
-```
-
-运行单元测试:
-
-```bash
-$ npm test
-```
-
-> 注意：浏览器环境需要手动测试，位于`test/browser`
 

@@ -198,7 +198,7 @@ class FocusControllerJs {
     if(typeof el === 'string'){
       newEl = document?.querySelector(el)||undefined;
     }
-    if(newEl){
+    if(newEl instanceof Element){
       newEl.setAttribute('focused', '');
       newEl.dispatchEvent(new CustomEvent('onFocus', { detail: { el: el } }));
     }

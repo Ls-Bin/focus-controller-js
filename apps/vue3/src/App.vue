@@ -12,14 +12,12 @@
     >
       {{item}}
     </div>
-    <div>
       <div v-for="item in 10"  class="focus-item" style="width:234px;"
            focusable="focusable"
            tabindex="-1"
       >
         {{item}}
       </div>
-    </div>
   </div>
 </template>
 <script lang="ts" setup>
