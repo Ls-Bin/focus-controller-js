@@ -24,6 +24,7 @@ const App = () => {
 
   return (
     <div className="content">
+      <h1>React</h1>
       {Array.from(Array(10), (e, i) => {
         return <div className="focus-item" focusable="focusable" tabindex="-1" key={i}>{i}</div>
       })}

@@ -3,6 +3,8 @@ import ScrollBar from '@better-scroll/scroll-bar';
 import { BScrollConstructor } from '@better-scroll/core/dist/types/BScroll';
 import MouseWheel from '@better-scroll/mouse-wheel';
 import { Options } from "@better-scroll/core/dist/types/Options";
+import { isColumnFirstRule, isRowFirstRule } from "../utils/rule";
+import { BaseFocusItem, getParentTag, initFocusableElList, parentShow } from "../utils/base";
 
 export const name = 'focus-controller-js';
 
@@ -18,12 +20,12 @@ export type FocusControllerProps = {
   ruleOffsetY?:[number, number];
 };
 
-type Direction = 'left' | 'right' | 'up' | 'down';
+export type Direction = 'left' | 'right' | 'up' | 'down';
 
 type DefaultNearData = {
   distances: number[];
   elList: Element[];
-  rectList: DOMRect[];
+  rectList: BaseFocusItem[];
 };
 
 /**
@@ -33,7 +35,6 @@ class FocusControllerJs {
   rangeEl?: HTMLElement;
   KEYS: Record<string, number[]>;
   scrollCaches: Record<string, BScrollConstructor>;
-  limitingEl: any;
   scrollFn?: (event: any, focusedEl: KeyboardEvent) => void;
   scrollTimeout?: NodeJS.Timeout;
   longTimeout?: NodeJS.Timeout;
@@ -74,49 +75,8 @@ class FocusControllerJs {
     document.addEventListener('keyup', (e) => this.onShortKeyUp(e));
     document.addEventListener('keydown', (e) => this.onLongKeyDown(e));
 
-    Object.defineProperty(this, 'limitingEl', {
-      get: function () {
-        return this._limitingEl;
-      },
-      set: function (node) {
-        if (node) {
-          document.querySelectorAll('[focusable]').forEach(function (
-            el: Element,
-          ) {
-            el.setAttribute('focusdisable', '');
-            el.removeAttribute('focusable');
-          });
-          node.querySelectorAll('[focusdisable]').forEach(function (
-            el: Element,
-          ) {
-            el.setAttribute('focusable', '');
-            el.removeAttribute('focusdisable');
-          });
-        } else {
-          document.querySelectorAll('[focusable]').forEach(function (
-            el: Element,
-          ) {
-            el.removeAttribute('focusdisable');
-          });
-          document.querySelectorAll('[focusdisable]').forEach(function (
-            el: Element,
-          ) {
-            el.setAttribute('focusable', '');
-            el.removeAttribute('focusdisable');
-          });
-        }
-
-        this._limitingEl = node;
-      },
-      enumerable: true,
-      configurable: true,
-    });
   }
 
-  init() {
-    // 控制焦点操作范围
-    this.limitingEl = '';
-  }
 
   // 长按
   onLongKeyDown(e: KeyboardEvent) {
@@ -217,29 +177,9 @@ class FocusControllerJs {
     });
   }
 
-  // 优先行选中
-  isRowFirstRule(focusedRect:DOMRect, elRect:DOMRect) {
-    // console.log('isRowFirstRule=',focusedRect, elRect,focusedRect.top <= elRect.top+(this.ruleOffsetX?.[0]||0),
-    //   ( focusedRect.top+focusedRect.height) >= (elRect.top+elRect.height)+(this.ruleOffsetX?.[1]||0)
-    //   )
-    if(focusedRect.top <= elRect.top+(this.ruleOffsetX?.[0]||0)&&
-      (focusedRect.top+focusedRect.height) >= (elRect.top+elRect.height)+(this.ruleOffsetX?.[1]||0)
-      ){
-      return true
-    }
-  }
-  // 优先列选中
-  isColumnFirstRule(focusedRect:DOMRect, elRect:DOMRect) {
-
-    if(focusedRect.left <= elRect.left+(this.ruleOffsetY?.[0]||0)&&
-      (focusedRect.left+focusedRect.width) >= (elRect.left+elRect.width)+(this.ruleOffsetY?.[1]||0)
-    ){
-      return true
-    }
-  }
 
   // 获取规则匹配el
-  getRulesEl(nearData: DefaultNearData, focusedRect:DOMRect) {
+  getRulesEl(nearData: DefaultNearData, focusedRect:BaseFocusItem) {
     let res = null;
     const ruleMap: Record<string, any[]> = {};
     this.rules.forEach((rule) => {
@@ -247,12 +187,12 @@ class FocusControllerJs {
       nearData.rectList.forEach((rect, index) => {
         switch (rule) {
           case 'rowFirst': {
-            const is = this.isRowFirstRule(focusedRect, rect);
+            const is = isRowFirstRule(focusedRect, rect,this.ruleOffsetX);
             if (is) ruleMap[rule][index] = rect;
             break;
           }
           case 'columnFirst': {
-            const is = this.isColumnFirstRule(focusedRect, rect);
+            const is = isColumnFirstRule(focusedRect, rect,this.ruleOffsetY);
             if (is) ruleMap[rule][index] = rect;
             break;
           }
@@ -273,6 +213,7 @@ class FocusControllerJs {
             rectList.push(nearData.rectList[index]);
           }
         });
+        console.log(distances);
         const min = Math.min(...distances.filter((d) => d));
         res = elList[distances.indexOf(min)];
         console.log('使用规则获取el:',rule,res);
@@ -291,23 +232,21 @@ class FocusControllerJs {
    */
   getNearEl(
     direction: Direction,
-    elList: NodeListOf<Element>,
+    elList: BaseFocusItem[],
     focusedRect: DOMRect,
   ): DefaultNearData {
     const distances: number[] = [];
     const list: Element[] = [];
-    const rectList: DOMRect[] = [];
+    const rectList: BaseFocusItem[] = [];
     const focusedCenter = [
       focusedRect.left + focusedRect.width / 2,
       focusedRect.top + focusedRect.height / 2,
     ]; //中心点[x,y]
 
-    elList.forEach((_el, ) => {
-      if (
-        'none' !== window.getComputedStyle(_el).display &&
-        this.parentShow(_el)
-      ) {
-        const elRect = _el.getBoundingClientRect();
+    elList.forEach((item:BaseFocusItem, ) => {
+      const _el = item?.el
+      if (item?.ifShow &&item?.ifParentShow&&_el) {
+        const elRect = item;
         const elCenter = [
           elRect.left + elRect.width / 2,
           elRect.top + elRect.height / 2,
@@ -348,16 +287,15 @@ class FocusControllerJs {
   getNextFocusEl(direction: Direction) {
     console.time('getNextFocusEl');
     // @ts-ignore
-    let focusableElList:NodeListOf<Element> = [];
+    const focusableElList:any[] =  initFocusableElList(this.rangeEl);
     // @ts-ignore
     let focusedEls:NodeListOf<Element> = [];
       if(this.rangeEl){
-        focusableElList=  this.rangeEl.querySelectorAll('[focusable]')
         focusedEls= this.rangeEl.querySelectorAll('[focused]')
       }else {
-         focusableElList = document.querySelectorAll('[focusable]');
          focusedEls = document.querySelectorAll('[focused]');
       }
+
     if (!focusableElList.length) return;
 
     if (
@@ -379,7 +317,12 @@ class FocusControllerJs {
     );
 
     // 规则匹配el
-    const ruleEl = this.getRulesEl(defaultNearData, focusedRect);
+    const ruleEl = this.getRulesEl(defaultNearData, {
+      left:focusedRect.left,
+      top:focusedRect.top,
+      width:focusedRect.width,
+      height:focusedRect.height,
+    });
 
     if (ruleEl) {
       focusedEl = ruleEl;
@@ -404,7 +347,7 @@ class FocusControllerJs {
    */
   doScroll( focusedEl: any) {
 
-    const parentElList = this.getParentTag(focusedEl)
+    const parentElList = getParentTag(focusedEl)
    const scrollEl =   parentElList.find(el=>el.getAttribute('focus-scroll-key'))
 
     if(scrollEl){
@@ -500,22 +443,6 @@ class FocusControllerJs {
       this.scrollCaches[key].refresh();
     }
   }
-  getParentTag(el: any, parents: any[] = []): Element[] {
-    return el instanceof HTMLElement
-      ? 'BODY' !== el.parentElement?.nodeName
-        ? (parents.push(el.parentElement),
-          this.getParentTag(el.parentElement, parents))
-        : parents
-      : [];
-  }
-  parentShow(el: Element) {
-    return this.getParentTag(el)?.filter(function (c: Element) {
-      return 'none' === window.getComputedStyle(c).display;
-    }).length
-      ? false
-      : true;
-  }
-
   resetScrollEl() {
     for (const key in this.scrollCaches) {
       this.scrollCaches[key].destroy();

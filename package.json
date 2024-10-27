@@ -18,9 +18,10 @@
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "npm@8.19.4",
+  "packageManager": "npm@10.8.2",
   "scripts": {
     "build": "turbo run build",
+    "dev": "turbo run dev",
     "test": "turbo run test",
     "lint": "turbo run lint"
   },
@@ -28,6 +29,6 @@
     "turbo": "latest"
   },
   "volta": {
-    "node": "16.20.2"
+    "node": "20.18.0"
   }
 }
