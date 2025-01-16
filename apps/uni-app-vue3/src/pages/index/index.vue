@@ -9,7 +9,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+// import FocusControllerJs from '@focus-controller-js/uni-app';
+import { onShow } from "@dcloudio/uni-app";
+
 const title = ref('Hello')
+
+onShow(()=>{
+  // const focusController = new FocusControllerJs();
+
+})
 </script>
 
 <style>

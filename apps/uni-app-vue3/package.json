@@ -45,6 +45,7 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@focus-controller-js/uni-app": "*",
     "@dcloudio/uni-app": "3.0.0-4020920240930001",
     "@dcloudio/uni-app-harmony": "3.0.0-4020920240930001",
     "@dcloudio/uni-app-plus": "3.0.0-4020920240930001",
