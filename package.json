@@ -26,6 +26,7 @@
     "lint": "turbo run lint"
   },
   "devDependencies": {
+    "jest": "^27.0.4",
     "turbo": "latest"
   },
   "volta": {
