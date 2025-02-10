@@ -51,7 +51,9 @@
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     },
-    "setupFilesAfterEnv": ["<rootDir>/test/jest-setup.js"]
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/jest-setup.js"
+    ]
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.26.3",

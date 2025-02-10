@@ -16,7 +16,7 @@ const App = () => {
   useEffect(() => {
     const el = document.querySelector('.focus-item') || undefined;
     console.log(el);
-    focusController.setFocus(el);
+    // focusController.setFocus(el);
     document.removeEventListener('keydown', onKeyDown);
     document.addEventListener('keydown', onKeyDown);
   },[]);

@@ -13,7 +13,7 @@ function renderHtml(){
     const child = document.createElement('div');
     child.setAttribute('focusable','focusable')
     child.className=('focus-item')
-    focusWrap.appendChild(child)
+    focusWrap?.appendChild(child)
   }
 }
 
@@ -42,10 +42,10 @@ describe('FocusControllerJs', () => {
    });
 
   it('禁用元素不能设置焦点', () => {
-    document.querySelector('[focusable]').setAttribute('focusdisable', 'focusdisable')
-    expect(document.querySelector('[focusable]')).toHaveAttribute('focusdisable');
+    document.querySelector('[focusable]')?.setAttribute('focusdisable', 'focusdisable')
+    expect(document.querySelector('[focusable]'))?.toHaveAttribute('focusdisable');
     const result = focusController.getNextFocusEl('right');
-    expect(result.el).not.toHaveAttribute('focusdisable');
+    expect(result).not?.toHaveAttribute('focusdisable');
   });
 //
 //   it('getNextFocusEl_FocusOutsideRange_ReturnsFirstFocusableElement', () => {

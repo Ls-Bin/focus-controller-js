@@ -179,7 +179,7 @@ class FocusControllerJs {
 
 
   // 获取规则匹配el
-  getRulesEl(nearData: DefaultNearData, focusedRect:BaseFocusItem) {
+  getRulesEl(nearData: DefaultNearData, focusedRect:BaseFocusItem):Element|null {
     let res = null;
     const ruleMap: Record<string, any[]> = {};
     this.rules.forEach((rule) => {
@@ -284,27 +284,46 @@ class FocusControllerJs {
    * 获取下个焦点
    * @param direction -方向
    */
-  getNextFocusEl(direction: Direction) {
+  getNextFocusEl(direction: Direction):Element|undefined {
     console.time('getNextFocusEl');
+    const noDisabledEls:Array<Element> = []
+    const noDisabledFocusableEls:Array<BaseFocusItem> = []
     // @ts-ignore
-    const focusableElList:any[] =  initFocusableElList(this.rangeEl);
+    const originFocusableElList:BaseFocusItem[] =  initFocusableElList(this.rangeEl);
+
+    if (!originFocusableElList || !originFocusableElList.length) {
+      console.warn('No focusable elements found');
+      return ;
+    }
+
     // @ts-ignore
-    let focusedEls:NodeListOf<Element> = [];
+    let originFocusedEls:NodeListOf<Element> = [];
       if(this.rangeEl){
-        focusedEls= this.rangeEl.querySelectorAll('[focused]')
+        originFocusedEls= this.rangeEl.querySelectorAll('[focused]')
       }else {
-         focusedEls = document.querySelectorAll('[focused]');
+        originFocusedEls = document.querySelectorAll('[focused]');
       }
+
+
+    // 过滤不可选元素
+    originFocusedEls.forEach((node:Element)=>{
+     if(!node.getAttribute('focusdisable')){
+       noDisabledEls.push(node)
+     }
+   } )
+    originFocusableElList.forEach((node)=>{
+     if(!node.disabled){
+       noDisabledFocusableEls.push(node)
+     }
+   } )
+
+   const  focusedEls = noDisabledEls
+   const  focusableElList = noDisabledFocusableEls
 
     if (!focusableElList.length) return;
 
-    if (
-      // 没已选焦点
-      !focusedEls.length ||
-      // 焦点在限制范围外
-      focusedEls[0].getAttribute('focusdisable') !== null
-    )
-      return focusableElList[0];
+    // 没已选焦点, 直接返回第一个元素,因为无法根据相对元素定位
+    if (!focusedEls.length) return focusableElList[0].el;
 
     let focusedEl = focusedEls[0];
 

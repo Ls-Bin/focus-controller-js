@@ -2,7 +2,7 @@
   "include": [
     "src/**/*.ts"
   ],
-  "exclude": ["node_modules", "**.d.ts"],
+  "exclude": ["node_modules", "**.d.ts","src/**/*.test.ts"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
