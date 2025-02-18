@@ -5,6 +5,7 @@ function renderHtml(){
     <div class="focus-wrap">
     test
     </div>
+    <div class="focus-range"></div>
   </div>
   `;
 
@@ -12,6 +13,9 @@ function renderHtml(){
   for (let i=0;i<100;i++){
     const child = document.createElement('div');
     child.setAttribute('focusable','focusable')
+    child.setAttribute('data-index',i)
+    child.style.width = '100px'
+    child.style.height = '100px'
     child.className=('focus-item')
     focusWrap?.appendChild(child)
   }
@@ -47,6 +51,30 @@ describe('FocusControllerJs', () => {
     const result = focusController.getNextFocusEl('right');
     expect(result).not?.toHaveAttribute('focusdisable');
   });
+
+
+    it('限制焦点范围', () => {
+      focusController.setRange('.focus-range')
+      const result = focusController.getNextFocusEl('right');
+
+      expect(result).toBeUndefined();
+
+      // 添加元素是否在焦点内的
+      const focusWrap = document.querySelector('.focus-range')
+      for (let i=0;i<10;i++){
+        const child = document.createElement('div');
+        child.setAttribute('focusable','focusable')
+        child.setAttribute('data-in-range','true')
+        child.style.width = '50px'
+        child.style.height = '50px'
+        child.className=('focus-item')
+        focusWrap?.appendChild(child)
+      }
+      const newResult = focusController.getNextFocusEl('right');
+      expect(newResult.getAttribute('data-in-range')).toBe('true');
+  });
+
+
 //
 //   it('getNextFocusEl_FocusOutsideRange_ReturnsFirstFocusableElement', () => {
 //     // 模拟可聚焦元素和焦点在限制范围之外
